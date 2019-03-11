@@ -90,7 +90,7 @@ class TableForm extends Component {
         <FormInput type="text" value={this.state.name} onChange={this.onNameChange} />
         
         <FormLabel>Participants:
-          <FormSelect onChange={this.onParticipantsChange} value={this.props.participants}>
+          <FormSelect onChange={this.onParticipantsChange} defaultValue={this.props.participants}>
           {[...generateSeats(SEATS_COUNT)].map((item) => <option key={item} value={item}>{item}</option>)}
           </FormSelect>
         </FormLabel>

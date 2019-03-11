@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import Table from './components/Table';
 import { getSocket } from './socket';
-import _ from 'lodash';
 
 const Container = styled('div')`
   display: inline-flex;
@@ -13,7 +12,7 @@ class App extends Component {
     super(props);
     this.state = {
       tables: {},
-      table_ids: []
+      tableIds: []
     };
     this.setTablesList = this.setTablesList.bind(this);
     this.updateTable = this.updateTable.bind(this);
@@ -22,8 +21,21 @@ class App extends Component {
 
   setTablesList({ tables }) {
     this.setState({
-      tables: _.mapKeys(tables, (v, k) => v.id),
-      table_ids: tables.map((item) => item.id)
+      tables: tables.reduce(function(result, obj) {
+        result[obj.id] = obj;
+        return result;
+      }),
+      tableIds: tables.map((item) => item.id)
+    });
+    
+  }
+
+  onTableUpdated({ table }) {
+    this.setState({
+      tables: {
+        ...this.state.tables,
+        [table.id]: {...table}
+      }
     });
   }
 
@@ -65,7 +77,7 @@ class App extends Component {
   render() {
     return (
       <Container>
-        {this.state.table_ids.filter((id) => !this.state.tables[id].deleted).map(
+        {this.state.tableIds.filter((id) => this.state.tables[id] && !this.state.tables[id].deleted).map(
             (id) => (<Table 
                   key={id}
                   {...this.state.tables[id]}
