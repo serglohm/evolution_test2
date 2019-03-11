@@ -17,6 +17,7 @@ class App extends Component {
     this.setTablesList = this.setTablesList.bind(this);
     this.updateTable = this.updateTable.bind(this);
     this.removeTable = this.removeTable.bind(this);
+    this.onTableUpdated = this.onTableUpdated.bind(this);
   }
 
   setTablesList({ tables }) {
@@ -24,10 +25,9 @@ class App extends Component {
       tables: tables.reduce(function(result, obj) {
         result[obj.id] = obj;
         return result;
-      }),
+      }, {}),
       tableIds: tables.map((item) => item.id)
     });
-    
   }
 
   onTableUpdated({ table }) {
@@ -46,6 +46,15 @@ class App extends Component {
         [id]: {id, name, participants}
       }
     });
+    const socket = getSocket();
+    socket.send({
+      $type: "update_table",
+      table: {
+        id,
+        name,
+        participants
+      }
+    });
   }
 
   removeTable({ id }) {
@@ -54,6 +63,11 @@ class App extends Component {
         ...this.state.tables,
         [id]: {deleted: true}
       }
+    });
+    const socket = getSocket();
+    socket.send({
+      $type: "remove_table",
+      id: id
     });
   }
 
@@ -66,6 +80,7 @@ class App extends Component {
         });
       });
       socket.onMessageType("table_list", this.setTablesList);
+      socket.onMessageType("table_updated", this.onTableUpdated);
       socket.send({
         $type: "login",
         username: "user1234",
