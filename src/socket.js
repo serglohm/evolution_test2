@@ -1,5 +1,4 @@
-//var wsUri = "wss://js-assignment.evolutiongaming.com/ws_api";
-var wsUri = "ws://127.0.0.1:5000";
+var wsUri = "wss://js-assignment.evolutiongaming.com/ws_api";
 
 const websocket = {
   socket: null,

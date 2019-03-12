@@ -33,7 +33,7 @@ class TableForm extends Component {
           Participants:
           <FormSelect
             onChange={this.onParticipantsChange}
-            value={this.props.participants}
+            defaultValue={this.props.participants}
           >
             {SEATS.map((item) => (
               <option key={item} value={item}>

@@ -5,10 +5,8 @@
   "dependencies": {
     "@emotion/core": "^10.0.7",
     "@emotion/styled": "^10.0.7",
-    "lodash": "^4.17.11",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
-    "react-emotion": "^10.0.0",
     "react-scripts": "2.1.8"
   },
   "scripts": {

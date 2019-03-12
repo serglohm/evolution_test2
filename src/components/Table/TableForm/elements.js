@@ -12,6 +12,7 @@ export const FormInput = styled("input")`
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   padding: 3px;
   margin: 3px;
+  width: 125px;
 `;
 
 export const FormSelect = styled("select")`

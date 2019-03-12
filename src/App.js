@@ -3,8 +3,12 @@ import styled from "@emotion/styled";
 import Table from "./components/Table";
 import { getSocket } from "./socket";
 
+const USERNAME = "user1234";
+const PASSWORD = "password1234";
+
 const Container = styled("div")`
-  display: inline-flex;
+  display: flex;
+  overflow-x: auto;
 `;
 
 class App extends Component {
@@ -14,13 +18,20 @@ class App extends Component {
       tables: {},
       tableIds: [],
     };
-    this.setTablesList = this.setTablesList.bind(this);
+    this.initTableList = this.initTableList.bind(this);
+    
     this.updateTable = this.updateTable.bind(this);
     this.removeTable = this.removeTable.bind(this);
+    
+    this.onTableAdded = this.onTableAdded.bind(this);
     this.onTableUpdated = this.onTableUpdated.bind(this);
+    this.onTableRemoved = this.onTableRemoved.bind(this);
+
+    this.onUpdateFailed = this.onUpdateFailed.bind(this);
+    this.onRemovalFailed = this.onRemovalFailed.bind(this);
   }
 
-  setTablesList({ tables }) {
+  initTableList({ tables }) {
     this.setState({
       tables: tables.reduce((result, obj) => {
         result[obj.id] = obj;
@@ -30,22 +41,69 @@ class App extends Component {
     });
   }
 
+  onTableAdded({ after_id, table }) {
+    console.log("onTableAdded");
+    let position = this.state.tableIds.findIndex((e) => e === +after_id) + 1;
+    let newTableIds = this.state.tableIds;
+    newTableIds.splice(position, 0, +table.id);
+    
+    this.setState({
+      tables: {
+        ...this.state.tables,
+        [table.id]: { ...table }
+      },
+      tableIds: newTableIds
+    });
+  }
+
   onTableUpdated({ table }) {
+    console.log("onTableUpdated");
     this.setState({
       tables: {
         ...this.state.tables,
         [table.id]: { ...table },
-      },
+      }
     });
   }
 
+  onUpdateFailed({ id }) {
+    console.log("onUpdateFailed");
+    this.setState({
+      tables: {
+        ...this.state.tables,
+        [id]: { ...this.state.tables[id].prev_version },
+      }
+    });
+  }
+
+  onTableRemoved({ id }) {
+    console.log("onTableRemoved");
+    this.setState({
+      tables: {
+        ...this.state.tables,
+        [id]: { ...this.state.tables[id], deleted: true },
+      }
+    });
+  }
+  
+  onRemovalFailed({ id }) {
+    console.log("onRemovalFailed");
+    this.setState({
+      tables: {
+        ...this.state.tables,
+        [id]: { ...this.state.tables[id], deleted: false },
+      }
+    });
+  }
+  
   updateTable({ id, name, participants }) {
     this.setState({
       tables: {
         ...this.state.tables,
-        [id]: { id, name, participants },
-      },
+        [id]: { id, name, participants, prev_version: this.state.tables[id] },
+      }
     });
+
     const socket = getSocket();
     socket.send({
       $type: "update_table",
@@ -53,7 +111,7 @@ class App extends Component {
         id,
         name,
         participants,
-      },
+      }
     });
   }
 
@@ -61,9 +119,10 @@ class App extends Component {
     this.setState({
       tables: {
         ...this.state.tables,
-        [id]: { deleted: true },
-      },
+        [id]: { ...this.state.tables[id], deleted: true },
+      }
     });
+
     const socket = getSocket();
     socket.send({
       $type: "remove_table",
@@ -79,12 +138,19 @@ class App extends Component {
           $type: "subscribe_tables",
         });
       });
-      socket.onMessageType("table_list", this.setTablesList);
+
+      socket.onMessageType("table_list", this.initTableList);
+      socket.onMessageType("table_added", this.onTableAdded);
+
       socket.onMessageType("table_updated", this.onTableUpdated);
+      socket.onMessageType("update_failed", this.onUpdateFailed);
+      
+      socket.onMessageType("removal_failed", this.onRemovalFailed);
+
       socket.send({
         $type: "login",
-        username: "user1234",
-        password: "password1234",
+        username: USERNAME,
+        password: PASSWORD
       });
     });
   }
